@@ -2,9 +2,34 @@ services:
   frontend:
     build:
       context: .
-      # dockerfile: Dockerfile 
-    command: ["npm", "run", "dev"]
+    command: ['npm', 'run', 'dev']
     ports:
-      - "5173:5173"
+      - '5173:5173'
     volumes:
       - ./frontend:/app
+  backend:
+    image: python:3.13-slim
+    working_dir: /project
+    command: bash -c 'pip install --upgrade pip && pip install -r requirements.txt && python manage.py runserver 0.0.0.0:8000'
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./backend:/project
+    depends_on:
+      - db
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./volumes/postgres:/var/lib/postgresql/data
